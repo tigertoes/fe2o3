@@ -1,0 +1,18 @@
+[package]
+name = "fe2o3"
+version = "0.1.0"
+authors = ["Tiger Toes"]
+
+[lib]
+name = "fe2o3"
+path = "src/lib.rs"
+
+[[bin]]
+name = "fe2o3"
+path = "src/main.rs"
+
+[dependencies]
+clap = "2.27.1"
+maxminddb = "0.8.1"
+futures = "0.1.14"
+hyper = "0.11.2"
