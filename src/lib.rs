@@ -38,7 +38,10 @@ impl<'a> Service for GeoIPService<'a> {
         let result: Result<Country, MaxMindDBError> = self.country.lookup(ip);
 
         let country_code = match result {
-            Ok(country) => country.country.unwrap().iso_code.unwrap(),
+            Ok(country) => match country.country {
+                Some(c) => c.iso_code.unwrap_or(NOT_FOUND.to_string()),
+                None    => NOT_FOUND.to_string()
+            }
             Err(_why)   => NOT_FOUND.to_string()
         };
 
