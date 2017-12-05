@@ -5,7 +5,7 @@ extern crate futures;
 use futures::future::Future;
 use hyper::header::ContentLength;
 use hyper::server::{Request, Response, Service};
-use maxminddb::geoip2::{Country, Isp};
+use maxminddb::geoip2::{Country, City, Isp};
 use maxminddb::MaxMindDBError;
 
 use std::net::IpAddr;
@@ -21,13 +21,17 @@ static AS_NOT_FOUND: &'static str = "0";
 // TODO: Add City database support
 pub struct GeoIPService<'a> {
     country: &'a Arc<maxminddb::Reader>,
+    city: &'a Arc<maxminddb::Reader>,
     autonomous_system: &'a Arc<maxminddb::Reader>
 }
 
 impl<'a> GeoIPService<'a> {
-    pub fn new(cc: &'a Arc<maxminddb::Reader>, a_s: &'a Arc<maxminddb::Reader>) -> Self {
+    pub fn new(cc: &'a Arc<maxminddb::Reader>,
+               ct: &'a Arc<maxminddb::Reader>,
+               a_s: &'a Arc<maxminddb::Reader>) -> Self {
         GeoIPService {
             country: cc,
+            city: ct,
             autonomous_system: a_s
         }
     }
@@ -42,6 +46,7 @@ impl<'a> Service for GeoIPService<'a> {
     fn call(&self, req: Request) -> Self::Future {
         let ip: IpAddr = FromStr::from_str(&req.path()[1..]).unwrap();
         let cc_result: Result<Country, MaxMindDBError> = self.country.lookup(ip);
+        let ct_result: Result<City, MaxMindDBError> = self.city.lookup(ip);
         let as_result: Result<Isp, MaxMindDBError> = self.autonomous_system.lookup(ip);
 
         // TODO: Add more data as headers
